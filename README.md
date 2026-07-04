@@ -1,36 +1,68 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Admin Dashboard (SUT)
 
-## Getting Started
+Read-only analytics dashboard built as a **System Under Test** for a QA automation portfolio
+(target: Katalon Studio data-driven suite). Focus areas: chart value validation, CSV export
+integrity, timezone-aware date filters, and multi-role (RBAC) scenarios.
 
-First, run the development server:
+> Test automation lives in a separate repo — this repo intentionally contains **no**
+> Playwright/Selenium/Katalon setup.
+
+## Stack
+
+Next.js 14 (App Router) · TypeScript strict · PostgreSQL + Prisma · Auth.js v5 ·
+Tailwind + shadcn/ui · Recharts · date-fns-tz · Vitest
+
+## Setup
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# 1. Start PostgreSQL (exposed on localhost:5434)
+docker compose up -d --wait
+
+# 2. Environment
+cp .env.example .env
+# then set AUTH_SECRET: openssl rand -base64 32
+
+# 3. Install deps
+npm install
+
+# 4. Database
+npx prisma migrate dev
+npm run db:seed        # 5,000 deterministic transactions
+
+# 5. Run
+npm run dev            # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Seeded logins
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Email                 | Password      | Role    |
+| --------------------- | ------------- | ------- |
+| `viewer@example.com`  | `Viewer123!`  | VIEWER  |
+| `manager@example.com` | `Manager123!` | MANAGER |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+**VIEWER** — dashboard + transactions, no CSV export, no `/revenue`.
+**MANAGER** — everything VIEWER has + CSV export + `/revenue`.
 
-## Learn More
+## Scripts
 
-To learn more about Next.js, take a look at the following resources:
+| Script               | What                                               |
+| -------------------- | -------------------------------------------------- |
+| `npm run dev`        | Dev server                                         |
+| `npm run build`      | Production build                                   |
+| `npm run lint`       | ESLint                                             |
+| `npm run type-check` | `tsc --noEmit`                                     |
+| `npm run test`       | Vitest (unit + component smoke)                    |
+| `npm run test:watch` | Vitest watch mode                                  |
+| `npm run db:seed`    | Deterministic seed (fixed faker seed, fixed "now") |
+| `npm run format`     | Prettier write                                     |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Design principles
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- **Deterministic data** — fixed faker seed (`12345`), fixed `FIXED_NOW = 2026-01-01T00:00:00Z`;
+  every number on screen can be recomputed independently.
+- **Read-only** — data comes from the seed script (simulating an upstream system), no CRUD forms.
+- **Filter state in the URL** — deep-linkable, refresh-safe, automatable.
+- **Testability hooks** — stable `data-testid` everywhere, `data-value` on chart points,
+  `data-iso` (ISO UTC) on every rendered date, deterministic CSV filenames.
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+See `PROJECT_PLAN.md` for the full plan and `CLAUDE.md` for coding rules.
