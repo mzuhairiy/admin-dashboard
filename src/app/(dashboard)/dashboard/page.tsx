@@ -60,7 +60,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
               <CardTitle className="text-base">Revenue Trend</CardTitle>
             </CardHeader>
             <CardContent>
-              <RevenueTrendChart data={trend} />
+              <RevenueTrendChart data={trend} currency={prefs.currency} />
             </CardContent>
           </Card>
 
@@ -70,7 +70,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
                 <CardTitle className="text-base">Top 10 Categories by Revenue</CardTitle>
               </CardHeader>
               <CardContent>
-                <TopCategoriesChart data={topCategories} />
+                <TopCategoriesChart data={topCategories} currency={prefs.currency} />
               </CardContent>
             </Card>
             <Card>

@@ -4,6 +4,19 @@ import { resolveFilters, filtersToSearchParams } from "@/schemas/filters";
 // FIXED_NOW is 2026-01-01T00:00:00Z; in Asia/Jakarta (UTC+7) "today" is 2026-01-01.
 
 describe("resolveFilters", () => {
+  it("falls back only the invalid preset, preserving other valid filters", () => {
+    const filters = resolveFilters({
+      preset: "invalid",
+      tz: "UTC",
+      category: "books",
+      status: "REFUNDED",
+    });
+    expect(filters.preset).toBe("30d");
+    expect(filters.tz).toBe("UTC");
+    expect(filters.categorySlugs).toEqual(["books"]);
+    expect(filters.statuses).toEqual(["REFUNDED"]);
+  });
+
   it("defaults to a 30-day preset in the default timezone", () => {
     const filters = resolveFilters({});
     expect(filters.preset).toBe("30d");

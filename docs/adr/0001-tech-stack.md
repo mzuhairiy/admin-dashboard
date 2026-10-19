@@ -26,7 +26,7 @@ chart values, CSV integrity, timezone conversion, RBAC). The SUT must be:
 | Charts     | Recharts 3                      | SVG-based: custom dot/shape/label render props let every data point carry `data-value` attributes so Katalon asserts numbers without OCR. |
 | Dates      | date-fns + date-fns-tz          | Explicit timezone conversion (`fromZonedTime`/`formatInTimeZone`); no reliance on server-local `Date` semantics. Store UTC, display per selected timezone. |
 | CSV        | PapaParse (`unparse`)           | RFC 4180 escaping, deterministic output, unit-testable pure function. |
-| Seed       | @faker-js/faker, seed `12345`   | Fixed seed + fixed `FIXED_NOW` (2026-01-01T00:00:00Z) → byte-identical data on every run; exact status ratios for stable assertions. |
+| Seed       | @faker-js/faker, seed `12345`   | Fixed seed + fixed `FIXED_NOW` (2026-01-01T00:00:00Z) + lockfile dependencies reproduce transaction business fields; exact status ratios for stable assertions. Internal IDs and salted password hashes are not reproducibility assertions. |
 | Tests      | Vitest + Testing Library        | White-box unit tests (timezone, CSV, aggregation, RBAC helpers) and component smoke tests. E2E automation intentionally lives in a separate Katalon repo. |
 
 ## Consequences

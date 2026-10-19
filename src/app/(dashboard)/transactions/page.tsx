@@ -51,12 +51,16 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
         <>
           <TransactionsTable
             rows={page.rows}
-            params={params}
+            params={{ ...params, page: page.page }}
             searchParams={searchParams}
             tz={filters.tz}
             currency={prefs.currency}
           />
-          <PaginationControls params={params} pageCount={page.pageCount} total={page.total} />
+          <PaginationControls
+            params={{ ...params, page: page.page }}
+            pageCount={page.pageCount}
+            total={page.total}
+          />
         </>
       )}
     </div>

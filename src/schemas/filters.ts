@@ -24,7 +24,7 @@ const PRESET_DAYS: Record<Exclude<DatePreset, "custom">, number> = {
 
 /** Raw URL search params (all optional strings). */
 export const filterSearchParamsSchema = z.object({
-  preset: z.enum(DATE_PRESETS).optional(),
+  preset: z.enum(DATE_PRESETS).catch("30d").optional(),
   from: z.string().optional(),
   to: z.string().optional(),
   tz: z.string().optional(),

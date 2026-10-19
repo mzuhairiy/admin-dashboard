@@ -1,14 +1,6 @@
 "use client";
 
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { CategoryRevenue } from "@/server/services/analytics";
 import { formatCurrency } from "@/lib/format";
 import { formatCompact } from "@/components/charts/chart-utils";
@@ -41,15 +33,17 @@ function CategoryBar({ x, y, width, height, payload }: BarShapeProps) {
   );
 }
 
-export function TopCategoriesChart({ data }: { data: CategoryRevenue[] }) {
+export function TopCategoriesChart({
+  data,
+  currency,
+}: {
+  data: CategoryRevenue[];
+  currency?: string;
+}) {
   return (
     <div data-testid="chart-top-categories" className="h-72 w-full">
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart
-          data={data}
-          layout="vertical"
-          margin={{ top: 4, right: 24, bottom: 0, left: 8 }}
-        >
+        <BarChart data={data} layout="vertical" margin={{ top: 4, right: 24, bottom: 0, left: 8 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
           <XAxis type="number" tickFormatter={formatCompact} tick={{ fontSize: 12 }} />
           <YAxis
@@ -59,7 +53,7 @@ export function TopCategoriesChart({ data }: { data: CategoryRevenue[] }) {
             tick={{ fontSize: 12 }}
             interval={0}
           />
-          <Tooltip formatter={(value) => [formatCurrency(Number(value)), "Revenue"]} />
+          <Tooltip formatter={(value) => [formatCurrency(Number(value), currency), "Revenue"]} />
           <Bar dataKey="revenue" shape={<CategoryBar />} isAnimationActive={false} />
         </BarChart>
       </ResponsiveContainer>

@@ -45,7 +45,13 @@ function makeStackShape(categoryName: string) {
   return StackSegment;
 }
 
-export function RevenueBreakdownChart({ breakdown }: { breakdown: RevenueBreakdown }) {
+export function RevenueBreakdownChart({
+  breakdown,
+  currency,
+}: {
+  breakdown: RevenueBreakdown;
+  currency?: string;
+}) {
   const data = breakdown.months.map((month) => ({
     month: month.month,
     ...month.byCategory,
@@ -59,7 +65,7 @@ export function RevenueBreakdownChart({ breakdown }: { breakdown: RevenueBreakdo
           <XAxis dataKey="month" tickFormatter={formatBucketLabel} tick={{ fontSize: 12 }} />
           <YAxis tickFormatter={formatCompact} tick={{ fontSize: 12 }} width={56} />
           <Tooltip
-            formatter={(value, name) => [formatCurrency(Number(value)), String(name)]}
+            formatter={(value, name) => [formatCurrency(Number(value), currency), String(name)]}
             labelFormatter={(label) => formatBucketLabel(String(label))}
           />
           <Legend />

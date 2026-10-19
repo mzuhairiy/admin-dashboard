@@ -23,7 +23,7 @@ cp .env.example .env
 # then set AUTH_SECRET: openssl rand -base64 32
 
 # 3. Install deps
-npm install
+npm ci
 
 # 4. Database
 npx prisma migrate dev
@@ -63,6 +63,22 @@ npm run dev            # http://localhost:3000
 - **Read-only** — data comes from the seed script (simulating an upstream system), no CRUD forms.
 - **Filter state in the URL** — deep-linkable, refresh-safe, automatable.
 - **Testability hooks** — stable `data-testid` everywhere, `data-value` on chart points,
-  `data-iso` (ISO UTC) on every rendered date, deterministic CSV filenames.
+  `data-iso` (ISO UTC) on transaction dates, deterministic CSV filenames.
+
+## Implementation status
+
+The six core SUT phases are implemented: seeded data, authentication/RBAC, dashboard,
+transactions/CSV, revenue breakdown with category drill-down, and persisted settings.
+The October 2026 correctness review fixed status-filtered charts, daylight-saving date
+arithmetic, Revenue's 30D selection, table/export query parity, out-of-range pagination,
+sign-in redirect validation, and chart currency preferences.
+
+Revenue counts **PAID** amounts within the active filters. Dashboard average order value
+uses paid orders; order totals and refund rates use all matching orders. Currency settings
+(IDR/USD/SGD) change formatting only. Trends use daily buckets through 90 days and monthly
+buckets for longer ranges. `/revenue` defaults to 1y; the other analytics pages use 30d.
+
+See [QA-HANDOFF.md](QA-HANDOFF.md) for the current automation contract and verification
+notes. Katalon automation and the cross-project portfolio remain separate deliverables.
 
 See `PROJECT_PLAN.md` for the full plan and `CLAUDE.md` for coding rules.

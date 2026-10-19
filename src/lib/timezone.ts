@@ -1,4 +1,3 @@
-import { addDays, subDays } from "date-fns";
 import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
 
 /** Timezones offered in the global filter bar. */
@@ -43,7 +42,8 @@ export function dayEndExclusiveUtc(dateStr: string, tz: string): Date {
 /** Pure calendar-date arithmetic on "yyyy-MM-dd" strings (independent of server timezone). */
 export function addDaysToDateString(dateStr: string, days: number): string {
   const base = fromZonedTime(`${dateStr}T00:00:00`, "UTC");
-  const shifted = days >= 0 ? addDays(base, days) : subDays(base, -days);
+  // These are UTC calendar dates: local-time addDays can repeat/skip dates at DST.
+  const shifted = new Date(base.getTime() + days * 24 * 60 * 60 * 1000);
   return formatInTimeZone(shifted, "UTC", "yyyy-MM-dd");
 }
 

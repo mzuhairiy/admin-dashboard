@@ -22,7 +22,8 @@ export function DateRangeFilter({ preset, fromDate, toDate }: DateRangeFilterPro
   const { setParams } = useFilterParams();
 
   const selectPreset = (value: Exclude<DatePreset, "custom">) => {
-    setParams({ preset: value === "30d" ? null : value, from: null, to: null });
+    // Revenue defaults to 1y, so selecting 30d must remain explicit in the URL.
+    setParams({ preset: value, from: null, to: null });
   };
 
   const setCustomRange = (nextFrom: string, nextTo: string) => {

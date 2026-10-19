@@ -52,7 +52,7 @@ export default async function RevenuePage({ searchParams }: RevenuePageProps) {
               <CardTitle className="text-base">Monthly Revenue by Category (PAID)</CardTitle>
             </CardHeader>
             <CardContent>
-              <RevenueBreakdownChart breakdown={breakdown} />
+              <RevenueBreakdownChart breakdown={breakdown} currency={prefs.currency} />
             </CardContent>
           </Card>
 

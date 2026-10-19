@@ -480,11 +480,36 @@ Aturan koding umum (file size, service layer, Zod validation, dll) → `CLAUDE.m
 
 ---
 
-## 11. Yang menyusul (tidak dalam scope dokumen ini)
+## 11. Status implementasi dan tindak lanjut (review 2026-10-19)
+
+Enam fase SUT sudah diimplementasikan: scaffold, schema/seed, auth/RBAC/shell,
+dashboard, transactions/CSV, serta revenue/settings/polish. `QA-HANDOFF.md` sudah
+tersedia sebagai kontrak automation; validasi end-to-end Katalon tetap di repo terpisah.
+
+Perbaikan correctness dari review ini:
+
+- Revenue trend dan top categories menghormati status filter (PAID di-intersect
+  dengan filter, bukan menggantikan filter).
+- Calendar-date arithmetic tidak tergantung timezone server saat DST berubah.
+- Pilihan 30D eksplisit di URL agar tidak kembali ke default 1y pada Revenue.
+- Preset invalid tidak membuang filter lain; repeated query params memakai nilai
+  pertama secara konsisten pada page dan CSV.
+- Pagination di luar hasil di-clamp ke halaman terakhir sebelum query database.
+- Callback sign-in dibatasi ke path lokal dan deep link tetap dipertahankan.
+- Tooltip chart mengikuti currency preference, tanpa konversi nominal.
+
+Klarifikasi scope aktual: settings mendukung 10 timezone dan IDR/USD/SGD; trend
+otomatis harian (≤90 hari) atau bulanan (>90 hari), belum ada selector agregasi tahunan.
+Viewer yang membuka `/revenue` diarahkan ke `/forbidden`; HTTP 403 berlaku pada API
+export. Bucketing timezone di JS untuk volume seed 5.000 baris adalah trade-off yang
+diterima (ADR 0001), bukan pekerjaan SQL migration yang tertunda.
+
+Tindak lanjut di luar perubahan correctness ini:
 
 - Katalon Studio automation plan (repo terpisah `admin-dashboard-automation`)
-- QA-HANDOFF.md final (setelah SUT 95%+)
 - Cross-project QA portfolio doc
+- Selector agregasi tahunan/manual dari brief awal, jika dibutuhkan di iterasi fitur
+  berikutnya; belum termasuk kontrak automation saat ini.
 
 ## 12. Hubungan ke Portfolio QA
 

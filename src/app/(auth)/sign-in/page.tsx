@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
-import { getRoleHomePath } from "@/lib/roles";
+import { resolveSignInRedirect } from "@/lib/auth-redirect";
 import { SignInForm } from "./sign-in-form";
 
 export const metadata: Metadata = {
@@ -14,7 +14,7 @@ interface SignInPageProps {
 
 export default async function SignInPage({ searchParams }: SignInPageProps) {
   const session = await auth();
-  if (session?.user) redirect(getRoleHomePath(session.user.role));
+  if (session?.user) redirect(resolveSignInRedirect(searchParams.callbackUrl));
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-slate-100 px-4">

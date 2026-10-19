@@ -3,6 +3,7 @@
 import { AuthError } from "next-auth";
 import { signIn, signOut } from "@/lib/auth";
 import { signInSchema } from "@/schemas/auth";
+import { resolveSignInRedirect } from "@/lib/auth-redirect";
 
 type SignInResult = { error: string } | undefined;
 
@@ -13,7 +14,7 @@ export async function signInAction(values: unknown, callbackUrl?: string): Promi
   }
 
   // Only allow internal redirect targets.
-  const redirectTo = callbackUrl?.startsWith("/") ? callbackUrl : "/dashboard";
+  const redirectTo = resolveSignInRedirect(callbackUrl);
 
   try {
     await signIn("credentials", {

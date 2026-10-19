@@ -35,7 +35,7 @@ function TrendDot({ cx, cy, payload }: DotProps) {
   );
 }
 
-export function RevenueTrendChart({ data }: { data: TrendPoint[] }) {
+export function RevenueTrendChart({ data, currency }: { data: TrendPoint[]; currency?: string }) {
   return (
     <div data-testid="chart-revenue-trend" className="h-72 w-full">
       <ResponsiveContainer width="100%" height="100%">
@@ -49,7 +49,7 @@ export function RevenueTrendChart({ data }: { data: TrendPoint[] }) {
           />
           <YAxis tickFormatter={formatCompact} tick={{ fontSize: 12 }} width={56} />
           <Tooltip
-            formatter={(value) => [formatCurrency(Number(value)), "Revenue"]}
+            formatter={(value) => [formatCurrency(Number(value), currency), "Revenue"]}
             labelFormatter={(label) => formatBucketLabel(String(label))}
           />
           <Line

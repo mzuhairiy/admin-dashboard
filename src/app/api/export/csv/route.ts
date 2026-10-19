@@ -16,7 +16,9 @@ export async function GET(request: NextRequest): Promise<Response> {
     return NextResponse.json({ error: "Forbidden: MANAGER role required" }, { status: 403 });
   }
 
-  const raw = Object.fromEntries(request.nextUrl.searchParams.entries());
+  // App Router pages resolve repeated parameters using their first value.
+  const query = request.nextUrl.searchParams;
+  const raw = Object.fromEntries(Array.from(query.keys(), (key) => [key, query.get(key)!]));
   const prefs = await getUserPrefs(session.user.id);
   const filters = resolveFilters(raw, prefs.timezone);
   const { sort, order } = resolveTableParams(raw);

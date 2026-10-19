@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { execFileSync } from "node:child_process";
 import {
   addDaysToDateString,
   dateStringInTz,
@@ -34,9 +35,7 @@ describe("dayEndExclusiveUtc", () => {
   });
 
   it("rolls over month boundaries", () => {
-    expect(dayEndExclusiveUtc("2025-06-30", "UTC").toISOString()).toBe(
-      "2025-07-01T00:00:00.000Z",
-    );
+    expect(dayEndExclusiveUtc("2025-06-30", "UTC").toISOString()).toBe("2025-07-01T00:00:00.000Z");
   });
 });
 
@@ -65,6 +64,28 @@ describe("formatDate (display changes, ISO stays constant)", () => {
 });
 
 describe("addDaysToDateString", () => {
+  it("does not repeat days when the server timezone crosses daylight saving", () => {
+    const output = execFileSync(
+      process.execPath,
+      [
+        "--import",
+        "tsx",
+        "--input-type=module",
+        "-e",
+        `
+      import { addDaysToDateString } from './src/lib/timezone.ts';
+      console.log(JSON.stringify([
+        addDaysToDateString('2025-03-09', 1),
+        addDaysToDateString('2025-11-03', -1),
+        addDaysToDateString('2025-03-01', 30),
+      ]));
+    `,
+      ],
+      { encoding: "utf8", env: { ...process.env, TZ: "America/New_York" } },
+    );
+    expect(JSON.parse(output)).toEqual(["2025-03-10", "2025-11-02", "2025-03-31"]);
+  });
+
   it("adds and subtracts across month/year boundaries", () => {
     expect(addDaysToDateString("2025-12-31", 1)).toBe("2026-01-01");
     expect(addDaysToDateString("2026-01-01", -1)).toBe("2025-12-31");

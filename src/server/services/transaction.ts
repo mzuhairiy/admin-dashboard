@@ -18,6 +18,7 @@ export interface TransactionPage {
   rows: TransactionRow[];
   total: number;
   pageCount: number;
+  page: number;
 }
 
 /**
@@ -68,20 +69,21 @@ export async function listTransactions(
   params: TableParams,
 ): Promise<TransactionPage> {
   const where = buildTransactionWhere(filters);
-  const [total, rows] = await Promise.all([
-    db.transaction.count({ where }),
-    db.transaction.findMany({
-      where,
-      select: rowSelect,
-      orderBy: buildOrderBy(params.sort, params.order),
-      skip: (params.page - 1) * params.pageSize,
-      take: params.pageSize,
-    }),
-  ]);
+  const total = await db.transaction.count({ where });
+  const pageCount = Math.max(1, Math.ceil(total / params.pageSize));
+  const page = Math.min(params.page, pageCount);
+  const rows = await db.transaction.findMany({
+    where,
+    select: rowSelect,
+    orderBy: buildOrderBy(params.sort, params.order),
+    skip: (page - 1) * params.pageSize,
+    take: params.pageSize,
+  });
   return {
     rows: rows.map(toRow),
     total,
-    pageCount: Math.max(1, Math.ceil(total / params.pageSize)),
+    pageCount,
+    page,
   };
 }
 

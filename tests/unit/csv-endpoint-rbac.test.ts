@@ -22,6 +22,8 @@ vi.mock("@/server/services/user", () => ({
 }));
 
 import { GET } from "@/app/api/export/csv/route";
+import { listTransactionsForExport } from "@/server/services/transaction";
+import { resolveFilters } from "@/schemas/filters";
 
 function makeRequest(query = ""): NextRequest {
   return new NextRequest(`http://localhost:3000/api/export/csv${query}`);
@@ -55,5 +57,19 @@ describe("GET /api/export/csv RBAC", () => {
     const body = await response.text();
     expect(body.split("\n")[0]).toContain("Transaction ID");
     expect(body).toContain("TX-2025-000001");
+  });
+
+  it("uses the same first repeated query values as the table", async () => {
+    authMock.mockResolvedValue({ user: { id: "u2", role: "MANAGER" } });
+    await GET(
+      makeRequest(
+        "?tz=UTC&tz=Asia/Tokyo&status=REFUNDED&status=PAID&sort=amount&sort=date&order=asc&order=desc",
+      ),
+    );
+    expect(listTransactionsForExport).toHaveBeenLastCalledWith(
+      resolveFilters({ tz: ["UTC", "Asia/Tokyo"], status: ["REFUNDED", "PAID"] }),
+      "amount",
+      "asc",
+    );
   });
 });

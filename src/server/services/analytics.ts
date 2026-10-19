@@ -70,11 +70,7 @@ export function bucketRevenueTrend(
   const keyLength = granularity === "day" ? 10 : 7; // yyyy-MM-dd vs yyyy-MM
 
   const buckets = new Map<string, number>();
-  for (
-    let date = filters.fromDate;
-    date <= filters.toDate;
-    date = addDaysToDateString(date, 1)
-  ) {
+  for (let date = filters.fromDate; date <= filters.toDate; date = addDaysToDateString(date, 1)) {
     buckets.set(date.slice(0, keyLength), 0);
   }
   for (const row of rows) {
@@ -111,7 +107,7 @@ export async function getDashboardStats(filters: ResolvedFilters): Promise<Dashb
 export async function getRevenueTrend(filters: ResolvedFilters): Promise<TrendPoint[]> {
   const where = buildTransactionWhere(filters);
   const rows = await db.transaction.findMany({
-    where: { ...where, status: "PAID" },
+    where: { AND: [where, { status: "PAID" }] },
     select: { createdAt: true, amount: true },
   });
   return bucketRevenueTrend(rows, filters);
@@ -124,7 +120,7 @@ export async function getTopCategories(
   const where = buildTransactionWhere(filters);
   const grouped = await db.transaction.groupBy({
     by: ["categoryId"],
-    where: { ...where, status: "PAID" },
+    where: { AND: [where, { status: "PAID" }] },
     _sum: { amount: true },
     orderBy: { _sum: { amount: "desc" } },
     take: limit,
