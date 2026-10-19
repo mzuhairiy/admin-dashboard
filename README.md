@@ -14,22 +14,41 @@ Tailwind + shadcn/ui · Recharts · date-fns-tz · Vitest
 
 ## Setup
 
+### Full stack with Docker Compose
+
 ```bash
-# 1. Start PostgreSQL (exposed on localhost:5434)
-docker compose up -d --wait
-
-# 2. Environment
 cp .env.example .env
-# then set AUTH_SECRET: openssl rand -base64 32
+# replace AUTH_SECRET with: openssl rand -base64 32
+docker compose up --build -d --wait
+```
 
-# 3. Install deps
+Open http://localhost:3000. Compose starts PostgreSQL, applies production migrations,
+seeds a fresh database with 5,000 deterministic transactions, and starts the production
+Next.js server. Subsequent starts preserve the database and skip automatic seeding.
+
+Useful commands:
+
+```bash
+docker compose logs -f app       # application logs
+docker compose ps                # service/health status
+docker compose down              # stop containers; keep database volume
+docker compose down --volumes    # remove containers and database data
+```
+
+Set `APP_PORT` and the matching `AUTH_URL` in `.env` when port 3000 is unavailable.
+PostgreSQL remains exposed at `localhost:5434` for Prisma Studio or other local tools.
+
+### Host development
+
+Keep PostgreSQL in Docker while running Next.js with hot reload on the host:
+
+```bash
+cp .env.example .env
+docker compose up -d postgres
+
 npm ci
-
-# 4. Database
 npx prisma migrate dev
 npm run db:seed        # 5,000 deterministic transactions
-
-# 5. Run
 npm run dev            # http://localhost:3000
 ```
 
@@ -54,6 +73,7 @@ npm run dev            # http://localhost:3000
 | `npm run test`       | Vitest (unit + component smoke)                    |
 | `npm run test:watch` | Vitest watch mode                                  |
 | `npm run db:seed`    | Deterministic seed (fixed faker seed, fixed "now") |
+| `npm run db:migrate` | Apply committed migrations in production/Compose   |
 | `npm run format`     | Prettier write                                     |
 
 ## Design principles

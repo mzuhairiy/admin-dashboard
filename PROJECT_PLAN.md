@@ -31,30 +31,31 @@ CSV export integrity, timezone-aware date filters, dan multi-role scenarios.
 
 ## 2. Tech Stack
 
-| Layer | Choice | Alasan |
-|---|---|---|
-| Framework | Next.js 14+ (App Router) | Sama dengan project lain, agent zero learning curve |
-| Language | TypeScript strict | Konsisten |
-| Database | PostgreSQL + Prisma | Konsisten |
-| UI | Tailwind + shadcn/ui | Konsisten |
-| Chart | Recharts | Populer, testable (SVG-based, punya data-* attribute) |
-| CSV | PapaParse (client) atau native (server) | Deterministic output |
-| Date/Timezone | date-fns + date-fns-tz | Explicit timezone handling (bukan native Date) |
-| Auth | Auth.js v5 (credentials) | Konsisten |
-| Deploy | Vercel + Neon/Supabase Postgres | Konsisten |
+| Layer         | Choice                                                | Alasan                                                                  |
+| ------------- | ----------------------------------------------------- | ----------------------------------------------------------------------- |
+| Framework     | Next.js 14+ (App Router)                              | Sama dengan project lain, agent zero learning curve                     |
+| Language      | TypeScript strict                                     | Konsisten                                                               |
+| Database      | PostgreSQL + Prisma                                   | Konsisten                                                               |
+| UI            | Tailwind + shadcn/ui                                  | Konsisten                                                               |
+| Chart         | Recharts                                              | Populer, testable (SVG-based, punya data-* attribute)                   |
+| CSV           | PapaParse (client) atau native (server)               | Deterministic output                                                    |
+| Date/Timezone | date-fns + date-fns-tz                                | Explicit timezone handling (bukan native Date)                          |
+| Auth          | Auth.js v5 (credentials)                              | Konsisten                                                               |
+| Deploy        | Docker Compose lokal; Vercel + Neon/Supabase opsional | Full-stack local SUT reproducible; hosted deployment tetap memungkinkan |
 
 ---
 
 ## 3. Personas & Roles
 
-| Role | Bisa apa |
-|---|---|
-| **Viewer** | Lihat semua chart & table. Filter. **TIDAK bisa export CSV** (buat test RBAC). |
-| **Manager** | Semua Viewer + **export CSV** + akses halaman Revenue (angka sensitif). |
+| Role        | Bisa apa                                                                       |
+| ----------- | ------------------------------------------------------------------------------ |
+| **Viewer**  | Lihat semua chart & table. Filter. **TIDAK bisa export CSV** (buat test RBAC). |
+| **Manager** | Semua Viewer + **export CSV** + akses halaman Revenue (angka sensitif).        |
 
 Auth sederhana: email + password. Setelah login, redirect ke `/dashboard`. Gak ada sign-up publik — user cuma dari seed.
 
 **Test surface RBAC:**
+
 - Viewer akses tombol Export → hidden atau disabled
 - Viewer akses `/revenue` via direct URL → 403
 - Manager akses semua → sukses
@@ -178,9 +179,9 @@ model Transaction {
 
 ### User seed
 
-| Email | Password | Role |
-|---|---|---|
-| `viewer@example.com` | `Viewer123!` | VIEWER |
+| Email                 | Password      | Role    |
+| --------------------- | ------------- | ------- |
+| `viewer@example.com`  | `Viewer123!`  | VIEWER  |
 | `manager@example.com` | `Manager123!` | MANAGER |
 
 ### Idempotent
@@ -510,17 +511,20 @@ Tindak lanjut di luar perubahan correctness ini:
 - Cross-project QA portfolio doc
 - Selector agregasi tahunan/manual dari brief awal, jika dibutuhkan di iterasi fitur
   berikutnya; belum termasuk kontrak automation saat ini.
+- Upgrade mayor Next.js 14 → versi supported terbaru. Audit 2026-10-20 masih menemukan
+  advisory pada Next.js yang hanya memiliki perbaikan melalui upgrade mayor; Auth.js
+  sudah dipatch ke `5.0.0-beta.32`/`@auth/core` `0.41.3` pada review containerisasi.
 
 ## 12. Hubungan ke Portfolio QA
 
-| Proyek | SUT stack | Automation | Skill baru vs proyek lain |
-|---|---|---|---|
-| Petpals | Next.js | Playwright | — |
-| CoursePlatform | Next.js | Playwright BDD | BDD/Gherkin |
-| CMS | Strapi (built-in) | Selenium Java + Allure | Java, SUT bukan milik sendiri |
-| **Admin Dashboard (ini)** | **Next.js** | **Katalon Studio** | **Katalon (low-code), data-driven, timezone/CSV testing** |
-| Mobile E-Commerce | — | Appium | Mobile |
-| Finance App | — | Maestro | React Native |
+| Proyek                    | SUT stack         | Automation             | Skill baru vs proyek lain                                 |
+| ------------------------- | ----------------- | ---------------------- | --------------------------------------------------------- |
+| Petpals                   | Next.js           | Playwright             | —                                                         |
+| CoursePlatform            | Next.js           | Playwright BDD         | BDD/Gherkin                                               |
+| CMS                       | Strapi (built-in) | Selenium Java + Allure | Java, SUT bukan milik sendiri                             |
+| **Admin Dashboard (ini)** | **Next.js**       | **Katalon Studio**     | **Katalon (low-code), data-driven, timezone/CSV testing** |
+| Mobile E-Commerce         | —                 | Appium                 | Mobile                                                    |
+| Finance App               | —                 | Maestro                | React Native                                              |
 
 **Yang membedakan proyek ini:** test surface fokus di **data correctness** (chart nilai benar, CSV integrity,
 timezone conversion konsisten) — beda dari proyek lain yang lebih fokus di flow user. Ini

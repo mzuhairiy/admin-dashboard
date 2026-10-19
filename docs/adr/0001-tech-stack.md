@@ -16,18 +16,19 @@ chart values, CSV integrity, timezone conversion, RBAC). The SUT must be:
 
 ## Decision
 
-| Concern    | Choice                          | Rationale |
-| ---------- | ------------------------------- | --------- |
-| Framework  | Next.js 14 (App Router)         | Server components keep all filtering/aggregation server-side; URL query = single source of filter state. Same stack as other portfolio SUTs. |
-| Language   | TypeScript (strict)             | Consistency, refactoring safety. |
-| Database   | PostgreSQL 16 + Prisma 6        | Prisma `groupBy`/aggregate covers the analytics queries; Postgres in Docker for reproducible local setup. Prisma 6 (not 7) keeps the conventional `schema.prisma` + `DATABASE_URL` workflow supported by `@auth/prisma-adapter` docs. |
-| Auth       | Auth.js v5 (credentials, JWT)   | Simple seeded logins; JWT sessions avoid DB round-trips in middleware; edge-safe config split (`auth.config.ts`) for RBAC middleware. |
-| UI         | Tailwind + shadcn/ui (slate)    | Consistent look with sibling projects; components ship with sane a11y and accept `data-testid` pass-through. |
-| Charts     | Recharts 3                      | SVG-based: custom dot/shape/label render props let every data point carry `data-value` attributes so Katalon asserts numbers without OCR. |
-| Dates      | date-fns + date-fns-tz          | Explicit timezone conversion (`fromZonedTime`/`formatInTimeZone`); no reliance on server-local `Date` semantics. Store UTC, display per selected timezone. |
-| CSV        | PapaParse (`unparse`)           | RFC 4180 escaping, deterministic output, unit-testable pure function. |
-| Seed       | @faker-js/faker, seed `12345`   | Fixed seed + fixed `FIXED_NOW` (2026-01-01T00:00:00Z) + lockfile dependencies reproduce transaction business fields; exact status ratios for stable assertions. Internal IDs and salted password hashes are not reproducibility assertions. |
-| Tests      | Vitest + Testing Library        | White-box unit tests (timezone, CSV, aggregation, RBAC helpers) and component smoke tests. E2E automation intentionally lives in a separate Katalon repo. |
+| Concern    | Choice                           | Rationale                                                                                                                                                                                                                                   |
+| ---------- | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Framework  | Next.js 14 (App Router)          | Server components keep all filtering/aggregation server-side; URL query = single source of filter state. Same stack as other portfolio SUTs.                                                                                                |
+| Language   | TypeScript (strict)              | Consistency, refactoring safety.                                                                                                                                                                                                            |
+| Database   | PostgreSQL 16 + Prisma 6         | Prisma `groupBy`/aggregate covers the analytics queries; Postgres in Docker for reproducible local setup. Prisma 6 (not 7) keeps the conventional `schema.prisma` + `DATABASE_URL` workflow supported by `@auth/prisma-adapter` docs.       |
+| Auth       | Auth.js v5 (credentials, JWT)    | Simple seeded logins; JWT sessions avoid DB round-trips in middleware; edge-safe config split (`auth.config.ts`) for RBAC middleware.                                                                                                       |
+| UI         | Tailwind + shadcn/ui (slate)     | Consistent look with sibling projects; components ship with sane a11y and accept `data-testid` pass-through.                                                                                                                                |
+| Charts     | Recharts 3                       | SVG-based: custom dot/shape/label render props let every data point carry `data-value` attributes so Katalon asserts numbers without OCR.                                                                                                   |
+| Dates      | date-fns + date-fns-tz           | Explicit timezone conversion (`fromZonedTime`/`formatInTimeZone`); no reliance on server-local `Date` semantics. Store UTC, display per selected timezone.                                                                                  |
+| CSV        | PapaParse (`unparse`)            | RFC 4180 escaping, deterministic output, unit-testable pure function.                                                                                                                                                                       |
+| Seed       | @faker-js/faker, seed `12345`    | Fixed seed + fixed `FIXED_NOW` (2026-01-01T00:00:00Z) + lockfile dependencies reproduce transaction business fields; exact status ratios for stable assertions. Internal IDs and salted password hashes are not reproducibility assertions. |
+| Tests      | Vitest + Testing Library         | White-box unit tests (timezone, CSV, aggregation, RBAC helpers) and component smoke tests. E2E automation intentionally lives in a separate Katalon repo.                                                                                   |
+| Containers | Multi-stage Dockerfile + Compose | Standalone Next.js runtime, PostgreSQL health gating, one-shot migration/seed initialization, and persistent local data make the complete SUT reproducible with one command.                                                                |
 
 ## Consequences
 

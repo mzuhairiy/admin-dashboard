@@ -1,7 +1,35 @@
 services:
+  app:
+    build:
+      context: .
+      target: runner
+    restart: unless-stopped
+    init: true
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/admin_dashboard?schema=public
+      AUTH_SECRET: ${AUTH_SECRET:?Set AUTH_SECRET in .env before starting the app}
+      AUTH_URL: ${AUTH_URL:-http://localhost:3000}
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      db-init:
+        condition: service_completed_successfully
+
+  db-init:
+    build:
+      context: .
+      target: db-tools
+    restart: "no"
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/admin_dashboard?schema=public
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   postgres:
     image: postgres:16-alpine
-    container_name: admin-dashboard-postgres
     restart: unless-stopped
     environment:
       POSTGRES_USER: postgres

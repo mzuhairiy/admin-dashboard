@@ -7,19 +7,24 @@ chart values, CSV integrity, timezone conversion, and RBAC.
 ## 1. Running the SUT
 
 ```bash
-docker compose up -d --wait   # Postgres on localhost:5434
-cp .env.example .env          # set AUTH_SECRET (openssl rand -base64 32)
-npm ci
-npx prisma migrate dev
-npm run db:seed
-npm run dev                   # http://localhost:3000
+cp .env.example .env          # replace AUTH_SECRET: openssl rand -base64 32
+docker compose up --build -d --wait
+# SUT: http://localhost:3000; health: http://localhost:3000/api/health
 ```
+
+The `db-init` one-shot service applies committed migrations and seeds only an empty
+database. PostgreSQL data persists in the Compose volume across restarts. To exercise
+a completely fresh deterministic seed, run `docker compose down --volumes` first;
+this intentionally deletes local database state, including changed user settings.
+
+For host development, start only `postgres`, then use the migration/seed/dev commands
+from `README.md`.
 
 ## 2. Test accounts
 
-| Email                 | Password      | Role    | Can                                        |
-| --------------------- | ------------- | ------- | ------------------------------------------ |
-| `viewer@example.com`  | `Viewer123!`  | VIEWER  | Dashboard, Transactions, Settings          |
+| Email                 | Password      | Role    | Can                                             |
+| --------------------- | ------------- | ------- | ----------------------------------------------- |
+| `viewer@example.com`  | `Viewer123!`  | VIEWER  | Dashboard, Transactions, Settings               |
 | `manager@example.com` | `Manager123!` | MANAGER | Everything Viewer can + CSV export + `/revenue` |
 
 ## 3. Deterministic data facts (safe to assert)
@@ -54,17 +59,17 @@ All filter/table state lives in the query string — a URL fully reproduces a vi
 /transactions?page=2&pageSize=50&sort=amount&order=desc&tz=UTC
 ```
 
-| Param      | Values                                             | Default        |
-| ---------- | -------------------------------------------------- | -------------- |
-| `preset`   | `7d` `30d` `90d` `1y` `custom`                     | `30d` (`1y` on `/revenue`) |
-| `from`/`to`| `yyyy-MM-dd` (only with `preset=custom`)           | —              |
-| `tz`       | `Asia/Jakarta` `Asia/Singapore` `Asia/Tokyo` `UTC` | user's setting |
-| `category` | comma-separated slugs                              | all            |
-| `status`   | comma-separated `PAID,PENDING,REFUNDED,CANCELLED`  | all            |
-| `page`     | integer ≥ 1                                        | `1`            |
-| `pageSize` | `20` `50` `100`                                    | `20`           |
-| `sort`     | `id` `date` `customer` `category` `amount` `status`| `date`         |
-| `order`    | `asc` `desc`                                       | `desc`         |
+| Param       | Values                                              | Default                    |
+| ----------- | --------------------------------------------------- | -------------------------- |
+| `preset`    | `7d` `30d` `90d` `1y` `custom`                      | `30d` (`1y` on `/revenue`) |
+| `from`/`to` | `yyyy-MM-dd` (only with `preset=custom`)            | —                          |
+| `tz`        | `Asia/Jakarta` `Asia/Singapore` `Asia/Tokyo` `UTC`  | user's setting             |
+| `category`  | comma-separated slugs                               | all                        |
+| `status`    | comma-separated `PAID,PENDING,REFUNDED,CANCELLED`   | all                        |
+| `page`      | integer ≥ 1                                         | `1`                        |
+| `pageSize`  | `20` `50` `100`                                     | `20`                       |
+| `sort`      | `id` `date` `customer` `category` `amount` `status` | `date`                     |
+| `order`     | `asc` `desc`                                        | `desc`                     |
 
 Invalid values fall back to defaults (no error page). Date presets are interpreted as
 calendar days **in the selected timezone**, then converted to UTC server-side.
@@ -81,26 +86,31 @@ Selecting a preset writes it explicitly, including `preset=30d` on Revenue.
 ## 5. Testability hooks
 
 ### Locator convention
+
 Stable `data-testid` on all interactive/assertable elements. Numeric assertions never
 need OCR — read `data-value`. Transaction date assertions never need parsing localized
 text — read `data-iso` (always ISO-8601 UTC). Chart buckets use local `data-date` or
 `data-month` keys, not UTC instants.
 
 ### Auth
+
 `sign-in-form` `sign-in-email` `sign-in-password` `sign-in-submit` `sign-in-error`
 
 ### Layout
+
 `sidebar` `sidebar-dashboard` `sidebar-transactions` `sidebar-revenue` (Manager only —
 absent from DOM for Viewer) `sidebar-settings` · `user-menu-trigger` `menu-settings`
 `menu-sign-out`
 
 ### Filter bar (dashboard + transactions + revenue)
+
 `filter-bar` `filter-date-range` `date-preset-7d|30d|90d|1y` `date-custom-start`
 `date-custom-end` · `filter-timezone` (+ `filter-timezone-{tz-slug}` options) ·
 `filter-category` + `filter-category-{slug}` · `filter-status` +
 `filter-status-{paid|pending|refunded|cancelled}` · `filter-clear`
 
 ### Dashboard
+
 `dashboard-page` · `stats-card-{revenue|orders|aov|refund-rate}` ·
 `stats-value-{revenue|orders|aov|refund-rate}` (**with `data-value`** = raw number) ·
 `chart-revenue-trend` + `chart-revenue-trend-point` (`data-date`, `data-value`) ·
@@ -108,6 +118,7 @@ absent from DOM for Viewer) `sidebar-settings` · `user-menu-trigger` `menu-sett
 `chart-order-status` + `chart-order-status-slice` (`data-status`, `data-value`)
 
 ### Transactions
+
 `transactions-page` `transactions-table` `transaction-row` (+`data-tx-id`) ·
 `column-{id|date|customer|category|amount|status}` (date cell has `data-iso`; amount
 cell has `data-value`) · `sort-{column}` · `pagination` `pagination-prev`
@@ -115,17 +126,20 @@ cell has `data-value`) · `sort-{column}` · `pagination` `pagination-prev`
 `export-csv-button` (**absent for Viewer**) · `empty-state`
 
 ### Revenue (Manager only)
+
 `revenue-page` · `revenue-breakdown-chart` + `revenue-breakdown-segment` (`data-month`,
 `data-category`, `data-value`) · `revenue-detail-table` `revenue-month-row`
 (`data-month`) `revenue-month-orders` `revenue-month-total` (both `data-value`) ·
 `revenue-drilldown-{yyyy-MM}` → expands `revenue-category-row` + `revenue-category-value`
 
 ### Settings
+
 `settings-page` `settings-form` `timezone-select` (+ `timezone-option-{slug}`)
 `currency-select` (+ `currency-option-{idr|usd|sgd}`) `settings-save-button`
 `settings-saved-toast` `settings-error`
 
 ### Misc
+
 `forbidden-page` `forbidden-back-link` · `not-found-page` · `loading-skeleton` ·
 `empty-state`
 
@@ -182,15 +196,21 @@ cell has `data-value`) · `sort-{column}` · `pagination` `pagination-prev`
 - Sign-in preserves local callback paths and queries, including when already signed in;
   external/protocol-relative callback URLs fall back to `/dashboard`.
 
-## 9. Verification snapshot — 2026-10-19
+## 9. Verification snapshot — 2026-10-20
 
 - `npm run lint`, `npm run type-check`, `npm run test`, and `npm run build` passed.
-- Vitest: **85 tests across 15 files**, including a subprocess with server timezone
+- Vitest: **87 tests across 16 files**, including the container health endpoint and a subprocess with server timezone
   `America/New_York` to cover date arithmetic across daylight-saving transitions.
 - Read-only checks against the existing 5,000-row PostgreSQL seed passed for 12
   combinations: UTC/Jakarta/New York × all/refunded/pending+cancelled/paid+refunded.
   Stats, trend sums, category sums, monthly breakdown, and export-query rows agreed;
   oversized page numbers matched the final slice of the sorted export result.
 - The default UTC reference values in section 3 were verified against PostgreSQL.
+- The multi-stage images built successfully. A separate empty Compose volume applied
+  migrations and created exactly 5,000 transactions, 10 categories, and 2 users. A
+  forced restart skipped seeding and retained all 5,000 transactions. The runtime runs
+  as the unprivileged `node` user and `/api/health` returned HTTP 200.
+- A manager credentials sign-in against the rebuilt container returned a session cookie
+  and the authenticated `/dashboard` request returned HTTP 200.
 - Browser/Katalon end-to-end execution remains a separate validation step; this
   snapshot does not claim that suite has run.

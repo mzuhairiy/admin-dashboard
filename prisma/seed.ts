@@ -111,9 +111,7 @@ function logNormalAmount(): number {
 /** Exact status counts (85/5/7/3 of the total), deterministically shuffled. */
 function statusSequence(): TransactionStatus[] {
   const statuses: TransactionStatus[] = [
-    ...Array<TransactionStatus>(Math.round(TOTAL_TRANSACTIONS * 0.85)).fill(
-      TransactionStatus.PAID,
-    ),
+    ...Array<TransactionStatus>(Math.round(TOTAL_TRANSACTIONS * 0.85)).fill(TransactionStatus.PAID),
     ...Array<TransactionStatus>(Math.round(TOTAL_TRANSACTIONS * 0.05)).fill(
       TransactionStatus.PENDING,
     ),
@@ -128,6 +126,21 @@ function statusSequence(): TransactionStatus[] {
 }
 
 async function main() {
+  // Compose bootstraps fresh databases without resetting an existing QA dataset.
+  if (process.argv.includes("--if-empty")) {
+    const counts = await Promise.all([
+      prisma.user.count(),
+      prisma.category.count(),
+      prisma.transaction.count(),
+    ]);
+    if (counts.some((count) => count > 0)) {
+      console.log(
+        "Seed skipped: database already contains data. Use db:seed explicitly to reset transactions.",
+      );
+      return;
+    }
+  }
+
   faker.seed(12345);
 
   // Users (upsert — password hash is salted, so keep existing on re-run)
@@ -198,7 +211,9 @@ async function main() {
   }
 
   const count = await prisma.transaction.count();
-  console.log(`Seed complete: ${count} transactions, ${CATEGORIES.length} categories, ${USERS.length} users.`);
+  console.log(
+    `Seed complete: ${count} transactions, ${CATEGORIES.length} categories, ${USERS.length} users.`,
+  );
 }
 
 main()
