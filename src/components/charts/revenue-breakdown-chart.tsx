@@ -11,8 +11,8 @@ import {
   YAxis,
 } from "recharts";
 import type { RevenueBreakdown } from "@/server/services/revenue";
-import { formatCurrency } from "@/lib/format";
 import { CHART_COLORS, formatBucketLabel, formatCompact } from "@/components/charts/chart-utils";
+import { MonetaryChartTooltip } from "@/components/charts/monetary-chart-tooltip";
 
 interface StackShapeProps {
   x?: number;
@@ -65,8 +65,15 @@ export function RevenueBreakdownChart({
           <XAxis dataKey="month" tickFormatter={formatBucketLabel} tick={{ fontSize: 12 }} />
           <YAxis tickFormatter={formatCompact} tick={{ fontSize: 12 }} width={56} />
           <Tooltip
-            formatter={(value, name) => [formatCurrency(Number(value), currency), String(name)]}
-            labelFormatter={(label) => formatBucketLabel(String(label))}
+            content={(props) => (
+              <MonetaryChartTooltip
+                active={props.active}
+                payload={props.payload}
+                label={props.label}
+                currency={currency}
+                labelFormatter={(label) => formatBucketLabel(label)}
+              />
+            )}
           />
           <Legend />
           {breakdown.categoryNames.map((categoryName, index) => (

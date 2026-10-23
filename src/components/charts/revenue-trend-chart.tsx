@@ -10,8 +10,8 @@ import {
   YAxis,
 } from "recharts";
 import type { TrendPoint } from "@/server/services/analytics";
-import { formatCurrency } from "@/lib/format";
 import { formatBucketLabel, formatCompact } from "@/components/charts/chart-utils";
+import { MonetaryChartTooltip } from "@/components/charts/monetary-chart-tooltip";
 
 interface DotProps {
   cx?: number;
@@ -49,8 +49,16 @@ export function RevenueTrendChart({ data, currency }: { data: TrendPoint[]; curr
           />
           <YAxis tickFormatter={formatCompact} tick={{ fontSize: 12 }} width={56} />
           <Tooltip
-            formatter={(value) => [formatCurrency(Number(value), currency), "Revenue"]}
-            labelFormatter={(label) => formatBucketLabel(String(label))}
+            content={(props) => (
+              <MonetaryChartTooltip
+                active={props.active}
+                payload={props.payload}
+                label={props.label}
+                currency={currency}
+                labelFormatter={(label) => formatBucketLabel(label)}
+                nameFormatter={() => "Revenue"}
+              />
+            )}
           />
           <Line
             type="monotone"

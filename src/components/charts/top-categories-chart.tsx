@@ -2,8 +2,8 @@
 
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { CategoryRevenue } from "@/server/services/analytics";
-import { formatCurrency } from "@/lib/format";
 import { formatCompact } from "@/components/charts/chart-utils";
+import { MonetaryChartTooltip } from "@/components/charts/monetary-chart-tooltip";
 
 interface BarShapeProps {
   x?: number;
@@ -53,7 +53,17 @@ export function TopCategoriesChart({
             tick={{ fontSize: 12 }}
             interval={0}
           />
-          <Tooltip formatter={(value) => [formatCurrency(Number(value), currency), "Revenue"]} />
+          <Tooltip
+            content={(props) => (
+              <MonetaryChartTooltip
+                active={props.active}
+                payload={props.payload}
+                label={props.label}
+                currency={currency}
+                nameFormatter={() => "Revenue"}
+              />
+            )}
+          />
           <Bar dataKey="revenue" shape={<CategoryBar />} isAnimationActive={false} />
         </BarChart>
       </ResponsiveContainer>

@@ -117,6 +117,14 @@ absent from DOM for Viewer) `sidebar-settings` · `user-menu-trigger` `menu-sett
 `chart-top-categories` + `chart-top-categories-bar` (`data-category`, `data-value`) ·
 `chart-order-status` + `chart-order-status-slice` (`data-status`, `data-value`)
 
+Revenue trend, top categories, and Revenue breakdown expose the active monetary
+tooltip after a chart point/segment is hovered or focused: `chart-tooltip`
+(`data-currency="IDR|USD|SGD"`) contains one `chart-tooltip-value` per displayed
+monetary series (`data-raw-value` is the unchanged numeric amount;
+`data-currency="IDR|USD|SGD"`; text is the formatted display value). Revenue
+breakdown may contain multiple `chart-tooltip-value` elements, one per category.
+The order status chart has no monetary tooltip hook.
+
 ### Transactions
 
 `transactions-page` `transactions-table` `transaction-row` (+`data-tx-id`) ·
